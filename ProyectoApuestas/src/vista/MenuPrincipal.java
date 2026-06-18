@@ -61,6 +61,10 @@ public class MenuPrincipal extends JFrame {
     private JTable tblSearchMatches;
     private DefaultTableModel modelSearchMatches;
 
+    // Historial Components
+    private JTable tblHistorial;
+    private DefaultTableModel modelHistorial;
+
     // Colors
     private final Color primaryGreen = new Color(27, 67, 50);
     private final Color secondaryGreen = new Color(45, 106, 79);
@@ -136,25 +140,35 @@ public class MenuPrincipal extends JFrame {
         tabbedPane = new JTabbedPane();
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 13));
 
-        // TAB 1: GRUPOS
-        tabbedPane.addTab("Grupos y Equipos", crearPanelGrupos());
-
-        // TAB 2: PRONOSTICOS
-        tabbedPane.addTab("Mis Pronósticos", crearPanelPronosticos());
-
-        // TAB 3: TABLA POSICIONES
-        tabbedPane.addTab("Tablas de Posiciones", crearPanelTablas());
-
-        // TAB 4: LEADERBOARD
-        tabbedPane.addTab("Ranking General", crearPanelLeaderboard());
-
-        // TAB 5: BUSCAR EQUIPO
-        tabbedPane.addTab("Buscar Equipo", crearPanelBuscarEquipo());
-
-        // TAB 6: ADMIN (ONLY IF ADMIN)
         if (usuarioLogueado.isEsAdmin()) {
+            // Admin Tabs: Grupos y Equipos, Tablas de Posiciones, Ranking General, Resultados Oficiales
+            tabbedPane.addTab("Grupos y Equipos", crearPanelGrupos());
+            tabbedPane.addTab("Tablas de Posiciones", crearPanelTablas());
+            tabbedPane.addTab("Ranking General", crearPanelLeaderboard());
             tabbedPane.addTab("Resultados Oficiales (Admin)", crearPanelAdmin());
+        } else {
+            // User Tabs: Grupos y Equipos, Mis Pronósticos, Tablas de Posiciones, Ranking General, Buscar Equipo, Historial de Actividad
+            tabbedPane.addTab("Grupos y Equipos", crearPanelGrupos());
+            tabbedPane.addTab("Mis Pronósticos", crearPanelPronosticos());
+            tabbedPane.addTab("Tablas de Posiciones", crearPanelTablas());
+            tabbedPane.addTab("Ranking General", crearPanelLeaderboard());
+            tabbedPane.addTab("Buscar Equipo", crearPanelBuscarEquipo());
+            tabbedPane.addTab("Historial de Actividad", crearPanelHistorial());
         }
+
+        tabbedPane.addChangeListener(e -> {
+            int selectedIndex = tabbedPane.getSelectedIndex();
+            if (selectedIndex != -1) {
+                String title = tabbedPane.getTitleAt(selectedIndex);
+                if ("Historial de Actividad".equals(title)) {
+                    cargarHistorial();
+                } else if ("Tablas de Posiciones".equals(title)) {
+                    cargarTablaPosicionesActual();
+                } else if ("Ranking General".equals(title)) {
+                    cargarLeaderboard();
+                }
+            }
+        });
 
         add(tabbedPane, BorderLayout.CENTER);
     }
@@ -275,20 +289,26 @@ public class MenuPrincipal extends JFrame {
         cbGruposTablas.addActionListener(e -> cargarTablaPosicionesActual());
         panelTop.add(cbGruposTablas);
 
-        panelTop.add(new JLabel("    Ver posiciones basadas en:"));
-        ButtonGroup btnGroup = new ButtonGroup();
-        radStandingsReales = new JRadioButton("Resultados Reales (Oficiales)", true);
-        radStandingsReales.setOpaque(false);
-        radStandingsReales.addActionListener(e -> cargarTablaPosicionesActual());
+        if (!usuarioLogueado.isEsAdmin()) {
+            panelTop.add(new JLabel("    Ver posiciones basadas en:"));
+            ButtonGroup btnGroup = new ButtonGroup();
+            radStandingsReales = new JRadioButton("Resultados Reales (Oficiales)", true);
+            radStandingsReales.setOpaque(false);
+            radStandingsReales.addActionListener(e -> cargarTablaPosicionesActual());
 
-        radStandingsPronosticos = new JRadioButton("Mis Pronósticos", false);
-        radStandingsPronosticos.setOpaque(false);
-        radStandingsPronosticos.addActionListener(e -> cargarTablaPosicionesActual());
+            radStandingsPronosticos = new JRadioButton("Mis Pronósticos", false);
+            radStandingsPronosticos.setOpaque(false);
+            radStandingsPronosticos.addActionListener(e -> cargarTablaPosicionesActual());
 
-        btnGroup.add(radStandingsReales);
-        btnGroup.add(radStandingsPronosticos);
-        panelTop.add(radStandingsReales);
-        panelTop.add(radStandingsPronosticos);
+            btnGroup.add(radStandingsReales);
+            btnGroup.add(radStandingsPronosticos);
+            panelTop.add(radStandingsReales);
+            panelTop.add(radStandingsPronosticos);
+        } else {
+            // For admin, we instantiate them so they aren't null, but we don't add them to the UI
+            radStandingsReales = new JRadioButton("Resultados Reales (Oficiales)", true);
+            radStandingsPronosticos = new JRadioButton("Mis Pronósticos", false);
+        }
 
         mainPanel.add(panelTop, BorderLayout.NORTH);
 
@@ -556,6 +576,7 @@ public class MenuPrincipal extends JFrame {
                     JOptionPane.showMessageDialog(this, "¡Pronósticos guardados exitosamente!", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                     actualizarPuntosHeader();
                     cargarTablaPosicionesActual();
+                    cargarHistorial();
                 } else {
                     JOptionPane.showMessageDialog(this, "Error al guardar pronósticos en la base de datos.", "Error BD", JOptionPane.ERROR_MESSAGE);
                 }
@@ -719,13 +740,86 @@ public class MenuPrincipal extends JFrame {
                     cargarTablaPosicionesActual();
                     
                     // Si el grupo cargado en pronósticos es el mismo, recargarlo
-                    String grupoSelPronos = (String) cbGruposPronosticos.getSelectedItem();
-                    String grupoSelAdmin = (String) cbGruposAdmin.getSelectedItem();
-                    if (grupoSelPronos != null && grupoSelPronos.equals(grupoSelAdmin)) {
-                        cargarPronosticosGrupo(grupoSelPronos);
+                    if (cbGruposPronosticos != null) {
+                        String grupoSelPronos = (String) cbGruposPronosticos.getSelectedItem();
+                        String grupoSelAdmin = (String) cbGruposAdmin.getSelectedItem();
+                        if (grupoSelPronos != null && grupoSelPronos.equals(grupoSelAdmin)) {
+                            cargarPronosticosGrupo(grupoSelPronos);
+                        }
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "Error al actualizar resultados oficiales en la base de datos.", "Error BD", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        }).start();
+    }
+
+    private JPanel crearPanelHistorial() {
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(bgLight);
+
+        JLabel lblTitle = new JLabel("Historial de Predicciones Realizadas", SwingConstants.CENTER);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblTitle.setForeground(primaryGreen);
+        lblTitle.setBorder(BorderFactory.createEmptyBorder(15, 0, 5, 0));
+        mainPanel.add(lblTitle, BorderLayout.NORTH);
+
+        modelHistorial = new DefaultTableModel(
+            new Object[]{"Fecha/Hora", "Acción", "Partido", "Mi Predicción"}, 0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int col) { return false; }
+        };
+
+        tblHistorial = new JTable(modelHistorial);
+        styleTable(tblHistorial);
+        JScrollPane scrollTable = new JScrollPane(tblHistorial);
+        scrollTable.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        mainPanel.add(scrollTable, BorderLayout.CENTER);
+
+        // Actions South
+        JPanel panelBajo = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 15));
+        panelBajo.setBackground(bgLight);
+        JButton btnRefrescar = new JButton("Actualizar Historial");
+        btnRefrescar.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnRefrescar.setBackground(secondaryGreen);
+        btnRefrescar.setForeground(Color.BLACK);
+        btnRefrescar.setPreferredSize(new Dimension(180, 35));
+        btnRefrescar.setFocusPainted(false);
+        btnRefrescar.addActionListener(e -> cargarHistorial());
+        panelBajo.add(btnRefrescar);
+        mainPanel.add(panelBajo, BorderLayout.SOUTH);
+
+        // Load initially
+        cargarHistorial();
+
+        return mainPanel;
+    }
+
+    private void cargarHistorial() {
+        if (modelHistorial == null) return;
+        new Thread(() -> {
+            List<Object[]> datos = apuestaControlador.obtenerHistorialUsuario(usuarioLogueado.getDocumento());
+            SwingUtilities.invokeLater(() -> {
+                modelHistorial.setRowCount(0);
+                for (Object[] fila : datos) {
+                    java.sql.Timestamp fecha = (java.sql.Timestamp) fila[0];
+                    String accion = (String) fila[1];
+                    String local = (String) fila[2];
+                    String visitante = (String) fila[3];
+                    int golesLocal = (int) fila[4];
+                    int golesVisitante = (int) fila[5];
+
+                    String fechaStr = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(fecha);
+                    String partido = local + " vs " + visitante;
+                    String prediccion = golesLocal + " - " + golesVisitante;
+
+                    modelHistorial.addRow(new Object[]{
+                        fechaStr,
+                        accion,
+                        partido,
+                        prediccion
+                    });
                 }
             });
         }).start();

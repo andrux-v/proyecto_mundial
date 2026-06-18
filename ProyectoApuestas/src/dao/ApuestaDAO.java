@@ -79,4 +79,33 @@ public class ApuestaDAO {
         }
         return null;
     }
+
+    public List<Object[]> obtenerHistorialPorUsuario(String usuarioDocumento) {
+        List<Object[]> historial = new ArrayList<>();
+        String sql = "SELECT h.fecha_registro, h.tipo_accion, p.equipo_local, p.equipo_visitante, h.goles_local, h.goles_visitante " +
+                     "FROM historial_apuestas h " +
+                     "JOIN partidos p ON h.partido_id = p.id " +
+                     "WHERE h.usuario_documento = ? " +
+                     "ORDER BY h.fecha_registro DESC";
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, usuarioDocumento);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    historial.add(new Object[]{
+                        rs.getTimestamp("fecha_registro"),
+                        rs.getString("tipo_accion"),
+                        rs.getString("equipo_local"),
+                        rs.getString("equipo_visitante"),
+                        rs.getInt("goles_local"),
+                        rs.getInt("goles_visitante")
+                    });
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener historial de apuestas: " + e.getMessage());
+        }
+        return historial;
+    }
 }

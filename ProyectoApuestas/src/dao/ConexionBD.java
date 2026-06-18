@@ -42,15 +42,38 @@ public class ConexionBD {
         try (Connection conn = obtenerConexion();
              Statement stmt = conn.createStatement()) {
 
+            // Migración: Cambiar documento a BIGINT y eliminar admin de texto antiguo
+            try {
+                stmt.executeUpdate("DELETE FROM usuarios WHERE documento = 'admin'");
+                
+                stmt.executeUpdate("SET FOREIGN_KEY_CHECKS = 0");
+                stmt.executeUpdate("ALTER TABLE usuarios MODIFY COLUMN documento BIGINT");
+                stmt.executeUpdate("ALTER TABLE apuestas MODIFY COLUMN usuario_documento BIGINT");
+                stmt.executeUpdate("ALTER TABLE historial_apuestas MODIFY COLUMN usuario_documento BIGINT");
+                stmt.executeUpdate("SET FOREIGN_KEY_CHECKS = 1");
+            } catch (SQLException e) {
+                // Si falla o no aplica, continuar
+            }
+
             // 2. Crear Tabla Usuarios
             stmt.executeUpdate(
                 "CREATE TABLE IF NOT EXISTS usuarios (" +
-                "  documento VARCHAR(50) PRIMARY KEY," +
+                "  documento BIGINT PRIMARY KEY," +
                 "  nombre VARCHAR(100) NOT NULL," +
                 "  edad INT NOT NULL," +
-                "  es_admin BOOLEAN DEFAULT FALSE" +
+                "  es_admin BOOLEAN DEFAULT FALSE," +
+                "  contrasena VARCHAR(255) NOT NULL" +
                 ")"
             );
+
+            // Migración: añadir columna contrasena si no existe
+            try {
+                stmt.executeUpdate("ALTER TABLE usuarios ADD COLUMN contrasena VARCHAR(255) NOT NULL DEFAULT '12345'");
+            } catch (SQLException e) {
+                if (e.getErrorCode() != 1060) { // 1060 = Duplicate column name
+                    throw e;
+                }
+            }
 
             // 3. Crear Tabla Partidos
             stmt.executeUpdate(
@@ -70,7 +93,7 @@ public class ConexionBD {
             stmt.executeUpdate(
                 "CREATE TABLE IF NOT EXISTS apuestas (" +
                 "  id INT AUTO_INCREMENT PRIMARY KEY," +
-                "  usuario_documento VARCHAR(50) NOT NULL," +
+                "  usuario_documento BIGINT NOT NULL," +
                 "  partido_id INT NOT NULL," +
                 "  goles_local INT NOT NULL," +
                 "  goles_visitante INT NOT NULL," +
@@ -79,6 +102,58 @@ public class ConexionBD {
                 "  UNIQUE KEY unique_usuario_partido (usuario_documento, partido_id)" +
                 ")"
             );
+
+            // 4.1 Crear Tabla Historial de Apuestas
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS historial_apuestas (" +
+                "  id_historial INT AUTO_INCREMENT PRIMARY KEY," +
+                "  usuario_documento BIGINT NOT NULL," +
+                "  partido_id INT NOT NULL," +
+                "  goles_local INT NOT NULL," +
+                "  goles_visitante INT NOT NULL," +
+                "  fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                "  tipo_accion VARCHAR(50) NOT NULL" +
+                ")"
+            );
+
+            // 4.2 Crear Trigger Nueva Apuesta
+            try {
+                stmt.executeUpdate(
+                    "CREATE TRIGGER trigger_nueva_apuesta AFTER INSERT ON apuestas " +
+                    "FOR EACH ROW " +
+                    "BEGIN " +
+                    "  INSERT INTO historial_apuestas (usuario_documento, partido_id, goles_local, goles_visitante, tipo_accion) " +
+                    "  VALUES (NEW.usuario_documento, NEW.partido_id, NEW.goles_local, NEW.goles_visitante, 'NUEVA PREDICCIÓN'); " +
+                    "END"
+                );
+            } catch (SQLException e) {
+                if (e.getErrorCode() != 1359) { // 1359 = Trigger already exists
+                    throw e;
+                }
+            }
+
+            // 4.3 Crear Trigger Actualizar Apuesta
+            try {
+                stmt.executeUpdate("DROP TRIGGER IF EXISTS trigger_actualiza_apuesta");
+                stmt.executeUpdate(
+                    "CREATE TRIGGER trigger_actualiza_apuesta AFTER UPDATE ON apuestas " +
+                    "FOR EACH ROW " +
+                    "BEGIN " +
+                    "  IF OLD.goles_local != NEW.goles_local OR OLD.goles_visitante != NEW.goles_visitante THEN " +
+                    "    UPDATE historial_apuestas " +
+                    "    SET goles_local = NEW.goles_local, " +
+                    "        goles_visitante = NEW.goles_visitante, " +
+                    "        fecha_registro = CURRENT_TIMESTAMP, " +
+                    "        tipo_accion = 'PREDICCIÓN MODIFICADA' " +
+                    "    WHERE usuario_documento = NEW.usuario_documento AND partido_id = NEW.partido_id; " +
+                    "  END IF; " +
+                    "END"
+                );
+            } catch (SQLException e) {
+                if (e.getErrorCode() != 1359) { // 1359 = Trigger already exists
+                    throw e;
+                }
+            }
 
             System.out.println("Tablas de la base de datos verificadas/creadas con éxito.");
 
@@ -96,8 +171,8 @@ public class ConexionBD {
     }
 
     private static void preSembrarAdmin(Connection conn) {
-        String sqlCheck = "SELECT COUNT(*) FROM usuarios WHERE documento = 'admin'";
-        String sqlInsert = "INSERT INTO usuarios (documento, nombre, edad, es_admin) VALUES ('admin', 'Administrador', 30, true)";
+        String sqlCheck = "SELECT COUNT(*) FROM usuarios WHERE documento = 1";
+        String sqlInsert = "INSERT INTO usuarios (documento, nombre, edad, es_admin, contrasena) VALUES (1, 'Administrador', 30, true, 'admin')";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sqlCheck)) {
             if (rs.next() && rs.getInt(1) == 0) {

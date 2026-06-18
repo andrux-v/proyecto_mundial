@@ -5,18 +5,24 @@ public class Usuario {
     private String nombre;
     private int edad;
     private boolean esAdmin;
+    private String contrasena;
     private int puntos; // helper for leaderboard ranking
 
-    public Usuario(String documento, String nombre, int edad, boolean esAdmin) {
+    public Usuario(String documento, String nombre, int edad, boolean esAdmin, String contrasena) {
         this.documento = documento;
         this.nombre = nombre;
         this.edad = edad;
         this.esAdmin = esAdmin;
+        this.contrasena = contrasena;
         this.puntos = 0;
     }
 
+    public Usuario(String documento, String nombre, int edad, boolean esAdmin) {
+        this(documento, nombre, edad, esAdmin, "12345");
+    }
+
     public Usuario(String documento, String nombre, int edad) {
-        this(documento, nombre, edad, false);
+        this(documento, nombre, edad, false, "12345");
     }
 
     public String getDocumento() {
@@ -57,5 +63,13 @@ public class Usuario {
 
     public void setPuntos(int puntos) {
         this.puntos = puntos;
+    }
+
+    public String getContrasena() {
+        return contrasena;
+    }
+
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
     }
 }

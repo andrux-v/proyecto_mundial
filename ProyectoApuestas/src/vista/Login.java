@@ -16,11 +16,13 @@ public class Login extends JFrame {
     
     // Login Panel Components
     private JTextField txtDocLogin;
+    private JPasswordField txtPassLogin;
     
     // Register Panel Components
     private JTextField txtDocReg;
     private JTextField txtNombreReg;
     private JSpinner spinEdadReg;
+    private JPasswordField txtPassReg;
 
     public Login() {
         this.usuarioControlador = new UsuarioControlador();
@@ -73,6 +75,20 @@ public class Login extends JFrame {
         gbc.gridx = 1;
         loginPanel.add(txtDocLogin, gbc);
 
+        // Password Label
+        JLabel lblPass = new JLabel("Contraseña:");
+        lblPass.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblPass.setForeground(primaryGreen);
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 1;
+        loginPanel.add(lblPass, gbc);
+
+        // Password Input
+        txtPassLogin = new JPasswordField(15);
+        txtPassLogin.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtPassLogin.setPreferredSize(new Dimension(200, 30));
+        gbc.gridx = 1;
+        loginPanel.add(txtPassLogin, gbc);
+
         // Button Login
         JButton btnIngresar = new JButton("Ingresar");
         btnIngresar.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -81,7 +97,7 @@ public class Login extends JFrame {
         btnIngresar.setFocusPainted(false);
         btnIngresar.setPreferredSize(new Dimension(150, 35));
         btnIngresar.addActionListener(this::accionLogin);
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2;
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
         loginPanel.add(btnIngresar, gbc);
 
         // Switch to register link
@@ -92,7 +108,7 @@ public class Login extends JFrame {
         btnIrARegistro.setContentAreaFilled(false);
         btnIrARegistro.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnIrARegistro.addActionListener(e -> cardLayout.show(mainPanel, "REGISTRO"));
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         loginPanel.add(btnIrARegistro, gbc);
 
         // --- REGISTRATION PANEL ---
@@ -147,6 +163,20 @@ public class Login extends JFrame {
         gbcReg.gridx = 1;
         regPanel.add(spinEdadReg, gbcReg);
 
+        // Password Label
+        JLabel lblPassReg = new JLabel("Contraseña:");
+        lblPassReg.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblPassReg.setForeground(primaryGreen);
+        gbcReg.gridx = 0; gbcReg.gridy = 4; gbcReg.gridwidth = 1;
+        regPanel.add(lblPassReg, gbcReg);
+
+        // Password Input
+        txtPassReg = new JPasswordField(15);
+        txtPassReg.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtPassReg.setPreferredSize(new Dimension(200, 30));
+        gbcReg.gridx = 1;
+        regPanel.add(txtPassReg, gbcReg);
+
         // Register Button
         JButton btnRegistrar = new JButton("Registrar e Ingresar");
         btnRegistrar.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -155,7 +185,7 @@ public class Login extends JFrame {
         btnRegistrar.setFocusPainted(false);
         btnRegistrar.setPreferredSize(new Dimension(150, 35));
         btnRegistrar.addActionListener(this::accionRegistro);
-        gbcReg.gridx = 0; gbcReg.gridy = 4; gbcReg.gridwidth = 2;
+        gbcReg.gridx = 0; gbcReg.gridy = 5; gbcReg.gridwidth = 2;
         regPanel.add(btnRegistrar, gbcReg);
 
         // Switch to login link
@@ -166,7 +196,7 @@ public class Login extends JFrame {
         btnIrALogin.setContentAreaFilled(false);
         btnIrALogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnIrALogin.addActionListener(e -> cardLayout.show(mainPanel, "LOGIN"));
-        gbcReg.gridy = 5;
+        gbcReg.gridy = 6;
         regPanel.add(btnIrALogin, gbcReg);
 
         // Add panels to CardLayout
@@ -181,19 +211,24 @@ public class Login extends JFrame {
 
     private void accionLogin(ActionEvent e) {
         String documento = txtDocLogin.getText().trim();
-        if (documento.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor ingrese su número de documento.", "Validación", JOptionPane.WARNING_MESSAGE);
+        String contrasena = new String(txtPassLogin.getPassword()).trim();
+        if (documento.isEmpty() || contrasena.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor ingrese su documento y contraseña.", "Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (!documento.matches("\\d+")) {
+            JOptionPane.showMessageDialog(this, "El documento debe contener solo números.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         new Thread(() -> {
-            Usuario usuario = usuarioControlador.iniciarSesion(documento);
+            Usuario usuario = usuarioControlador.iniciarSesion(documento, contrasena);
             SwingUtilities.invokeLater(() -> {
                 if (usuario != null) {
                     JOptionPane.showMessageDialog(this, "¡Bienvenido, " + usuario.getNombre() + "!", "Acceso Autorizado", JOptionPane.INFORMATION_MESSAGE);
                     abrirMenuPrincipal(usuario);
                 } else {
-                    JOptionPane.showMessageDialog(this, "El documento ingresado no está registrado.", "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Documento o contraseña incorrectos.", "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
                 }
             });
         }).start();
@@ -203,18 +238,23 @@ public class Login extends JFrame {
         String documento = txtDocReg.getText().trim();
         String nombre = txtNombreReg.getText().trim();
         int edad = (int) spinEdadReg.getValue();
+        String contrasena = new String(txtPassReg.getPassword()).trim();
 
-        if (documento.isEmpty() || nombre.isEmpty()) {
+        if (documento.isEmpty() || nombre.isEmpty() || contrasena.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Por favor complete todos los campos.", "Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (!documento.matches("\\d+")) {
+            JOptionPane.showMessageDialog(this, "El documento debe contener solo números.", "Validación", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         new Thread(() -> {
-            boolean exito = usuarioControlador.registrarUsuario(documento, nombre, edad);
+            boolean exito = usuarioControlador.registrarUsuario(documento, nombre, edad, contrasena);
             SwingUtilities.invokeLater(() -> {
                 if (exito) {
                     JOptionPane.showMessageDialog(this, "Usuario registrado con éxito.", "Registro exitoso", JOptionPane.INFORMATION_MESSAGE);
-                    Usuario recienRegistrado = usuarioControlador.iniciarSesion(documento);
+                    Usuario recienRegistrado = usuarioControlador.iniciarSesion(documento, contrasena);
                     if (recienRegistrado != null) {
                         abrirMenuPrincipal(recienRegistrado);
                     }

@@ -267,4 +267,8 @@ public class ApuestaControlador {
 
         return info;
     }
+
+    public List<Object[]> obtenerHistorialUsuario(String documento) {
+        return apuestaDAO.obtenerHistorialPorUsuario(documento);
+    }
 }

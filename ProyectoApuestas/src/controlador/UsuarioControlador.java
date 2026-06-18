@@ -20,33 +20,48 @@ public class UsuarioControlador {
         this.apuestaDAO = new ApuestaDAO();
     }
 
-    public Usuario iniciarSesion(String documento) {
-        if (documento == null || documento.trim().isEmpty()) {
+    public Usuario iniciarSesion(String documento, String contrasena) {
+        if (documento == null || documento.trim().isEmpty() || contrasena == null) {
             return null;
         }
-        return usuarioDAO.buscarUsuarioPorDocumento(documento.trim());
+        documento = documento.trim();
+        if (!documento.matches("\\d+")) {
+            return null; // Solo se permiten números
+        }
+        Usuario u = usuarioDAO.buscarUsuarioPorDocumento(documento);
+        if (u != null && u.getContrasena().equals(contrasena)) {
+            return u;
+        }
+        return null;
     }
 
-    public boolean registrarUsuario(String documento, String nombre, int edad) {
+    public boolean registrarUsuario(String documento, String nombre, int edad, String contrasena) {
         if (documento == null || documento.trim().isEmpty() ||
-            nombre == null || nombre.trim().isEmpty() || edad <= 0) {
+            nombre == null || nombre.trim().isEmpty() || edad <= 0 ||
+            contrasena == null || contrasena.trim().isEmpty()) {
             return false;
         }
         
         documento = documento.trim();
+        if (!documento.matches("\\d+")) {
+            return false; // Solo se permiten números
+        }
+        
         nombre = nombre.trim();
+        contrasena = contrasena.trim();
 
         // Verificar si el usuario ya existe
         if (usuarioDAO.buscarUsuarioPorDocumento(documento) != null) {
             return false;
         }
 
-        Usuario nuevo = new Usuario(documento, nombre, edad, false);
+        Usuario nuevo = new Usuario(documento, nombre, edad, false, contrasena);
         return usuarioDAO.registrarUsuario(nuevo);
     }
 
     public List<Usuario> obtenerRanking() {
         List<Usuario> usuarios = usuarioDAO.obtenerTodosLosUsuarios();
+        usuarios.removeIf(Usuario::isEsAdmin);
         List<Partido> partidos = partidoDAO.obtenerTodosLosPartidos();
         
         for (Usuario u : usuarios) {
