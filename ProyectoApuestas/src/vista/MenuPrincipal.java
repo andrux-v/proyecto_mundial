@@ -66,9 +66,9 @@ public class MenuPrincipal extends JFrame {
     private DefaultTableModel modelHistorial;
 
     // Colors
-    private final Color primaryGreen = new Color(27, 67, 50);
-    private final Color secondaryGreen = new Color(45, 106, 79);
-    private final Color bgLight = new Color(240, 245, 241);
+    private final Color primaryColor = new Color(24, 43, 73);
+    private final Color secondaryColor = new Color(51, 65, 85);
+    private final Color bgLight = new Color(245, 247, 250);
 
     public MenuPrincipal(Usuario usuario) {
         this.usuarioLogueado = usuario;
@@ -80,7 +80,7 @@ public class MenuPrincipal extends JFrame {
         this.spinnersRealLocal = new ArrayList<>();
         this.spinnersRealVisitante = new ArrayList<>();
 
-        setTitle("Sistema de Apuestas - Mundial");
+        setTitle("Mundial 2026");
         setSize(850, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -95,7 +95,7 @@ public class MenuPrincipal extends JFrame {
 
         // --- HEADER PANEL ---
         JPanel panelHeader = new JPanel(new BorderLayout(15, 0));
-        panelHeader.setBackground(primaryGreen);
+        panelHeader.setBackground(primaryColor);
         panelHeader.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
         JPanel panelUserInfo = new JPanel(new GridLayout(2, 1, 0, 3));
@@ -107,7 +107,7 @@ public class MenuPrincipal extends JFrame {
         String rol = usuarioLogueado.isEsAdmin() ? "Administrador" : "Usuario";
         JLabel lblRol = new JLabel("Rol: " + rol + " | Documento: " + usuarioLogueado.getDocumento(), SwingConstants.LEFT);
         lblRol.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        lblRol.setForeground(new Color(200, 220, 205));
+        lblRol.setForeground(new Color(220, 235, 225));
         
         panelUserInfo.add(lblNombre);
         panelUserInfo.add(lblRol);
@@ -119,11 +119,13 @@ public class MenuPrincipal extends JFrame {
         lblPuntosHeader = new JLabel("Puntos: 0", SwingConstants.RIGHT);
         lblPuntosHeader.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblPuntosHeader.setForeground(new Color(250, 215, 100)); // Gold
-        panelHeaderActions.add(lblPuntosHeader);
+        if (!usuarioLogueado.isEsAdmin()) {
+            panelHeaderActions.add(lblPuntosHeader);
+        }
 
         JButton btnLogout = new JButton("Cerrar Sesión");
         btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnLogout.setBackground(new Color(150, 30, 30));
+        btnLogout.setBackground(new Color(160, 40, 40));
         btnLogout.setForeground(Color.BLACK);
         btnLogout.setFocusPainted(false);
         btnLogout.addActionListener(e -> {
@@ -205,13 +207,13 @@ public class MenuPrincipal extends JFrame {
             JPanel card = new JPanel(new BorderLayout(5, 5));
             card.setBackground(Color.WHITE);
             card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(primaryGreen, 1, true),
+                BorderFactory.createLineBorder(primaryColor, 1, true),
                 BorderFactory.createEmptyBorder(8, 8, 8, 8)
             ));
 
             JLabel title = new JLabel(grupos[i], SwingConstants.CENTER);
             title.setFont(new Font("Segoe UI", Font.BOLD, 14));
-            title.setForeground(primaryGreen);
+            title.setForeground(primaryColor);
             card.add(title, BorderLayout.NORTH);
 
             JPanel list = new JPanel(new GridLayout(4, 1, 3, 3));
@@ -261,7 +263,7 @@ public class MenuPrincipal extends JFrame {
         panelSave.setBackground(bgLight);
         JButton btnGuardar = new JButton("Guardar Pronósticos");
         btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnGuardar.setBackground(primaryGreen);
+        btnGuardar.setBackground(primaryColor);
         btnGuardar.setForeground(Color.BLACK);
         btnGuardar.setFocusPainted(false);
         btnGuardar.setPreferredSize(new Dimension(220, 40));
@@ -336,9 +338,9 @@ public class MenuPrincipal extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(bgLight);
 
-        JLabel lblTitle = new JLabel("Líderes de la Polla - Ranking de Puntajes", SwingConstants.CENTER);
+        JLabel lblTitle = new JLabel("Líderes del Mundial - Ranking de Puntajes", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblTitle.setForeground(primaryGreen);
+        lblTitle.setForeground(primaryColor);
         lblTitle.setBorder(BorderFactory.createEmptyBorder(15, 0, 5, 0));
         mainPanel.add(lblTitle, BorderLayout.NORTH);
 
@@ -360,7 +362,7 @@ public class MenuPrincipal extends JFrame {
         panelBajo.setBackground(bgLight);
         JButton btnRefrescar = new JButton("Actualizar Ranking");
         btnRefrescar.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnRefrescar.setBackground(secondaryGreen);
+        btnRefrescar.setBackground(secondaryColor);
         btnRefrescar.setForeground(Color.BLACK);
         btnRefrescar.setPreferredSize(new Dimension(180, 35));
         btnRefrescar.setFocusPainted(false);
@@ -389,7 +391,7 @@ public class MenuPrincipal extends JFrame {
 
         JButton btnSearch = new JButton("Buscar");
         btnSearch.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnSearch.setBackground(primaryGreen);
+        btnSearch.setBackground(primaryColor);
         btnSearch.setForeground(Color.BLACK);
         btnSearch.setPreferredSize(new Dimension(90, 28));
         btnSearch.setFocusPainted(false);
@@ -462,9 +464,8 @@ public class MenuPrincipal extends JFrame {
         panelSave.setBackground(bgLight);
         JButton btnGuardar = new JButton("Guardar Resultados Oficiales");
         btnGuardar.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnGuardar.setBackground(new Color(150, 80, 0));
+        btnGuardar.setBackground(primaryColor);
         btnGuardar.setForeground(Color.BLACK);
-        btnGuardar.setFocusPainted(false);
         btnGuardar.setPreferredSize(new Dimension(240, 40));
         btnGuardar.addActionListener(this::accionGuardarResultadosAdmin);
         panelSave.add(btnGuardar);
@@ -487,6 +488,7 @@ public class MenuPrincipal extends JFrame {
     }
 
     private void actualizarPuntosHeader() {
+        if (usuarioLogueado.isEsAdmin()) return;
         new Thread(() -> {
             List<Usuario> ranking = usuarioControlador.obtenerRanking();
             int userPuntos = 0;
@@ -527,6 +529,7 @@ public class MenuPrincipal extends JFrame {
             gbc.gridx = 1; gbc.weightx = 0.08;
             JSpinner spinLocal = new JSpinner(new SpinnerNumberModel(a.getGolesLocal(), 0, 25, 1));
             spinLocal.setPreferredSize(new Dimension(50, 25));
+            restringirSoloNumeros(spinLocal);
             panelPronosticosContenido.add(spinLocal, gbc);
             spinnersLocal.add(spinLocal);
 
@@ -537,6 +540,7 @@ public class MenuPrincipal extends JFrame {
             gbc.gridx = 3; gbc.weightx = 0.08;
             JSpinner spinVisitante = new JSpinner(new SpinnerNumberModel(a.getGolesVisitante(), 0, 25, 1));
             spinVisitante.setPreferredSize(new Dimension(50, 25));
+            restringirSoloNumeros(spinVisitante);
             panelPronosticosContenido.add(spinVisitante, gbc);
             spinnersVisitante.add(spinVisitante);
 
@@ -652,7 +656,7 @@ public class MenuPrincipal extends JFrame {
                     lblSearchInfo.setForeground(new Color(150, 30, 30));
                 } else {
                     lblSearchInfo.setText("Equipo: " + info.getEquipo() + " | Grupo: " + info.getGrupo());
-                    lblSearchInfo.setForeground(primaryGreen);
+                    lblSearchInfo.setForeground(primaryColor);
 
                     for (PartidoComparacion pc : info.getPartidos()) {
                         modelSearchMatches.addRow(new Object[]{
@@ -691,6 +695,7 @@ public class MenuPrincipal extends JFrame {
             gbc.gridx = 1; gbc.weightx = 0.08;
             JSpinner spinLocal = new JSpinner(new SpinnerNumberModel(p.getGolesLocal(), -1, 25, 1));
             spinLocal.setPreferredSize(new Dimension(55, 25));
+            restringirSoloNumerosPermitirNegativo(spinLocal);
             panelAdminContenido.add(spinLocal, gbc);
             spinnersRealLocal.add(spinLocal);
 
@@ -701,6 +706,7 @@ public class MenuPrincipal extends JFrame {
             gbc.gridx = 3; gbc.weightx = 0.08;
             JSpinner spinVisitante = new JSpinner(new SpinnerNumberModel(p.getGolesVisitante(), -1, 25, 1));
             spinVisitante.setPreferredSize(new Dimension(55, 25));
+            restringirSoloNumerosPermitirNegativo(spinVisitante);
             panelAdminContenido.add(spinVisitante, gbc);
             spinnersRealVisitante.add(spinVisitante);
 
@@ -760,7 +766,7 @@ public class MenuPrincipal extends JFrame {
 
         JLabel lblTitle = new JLabel("Historial de Predicciones Realizadas", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblTitle.setForeground(primaryGreen);
+        lblTitle.setForeground(primaryColor);
         lblTitle.setBorder(BorderFactory.createEmptyBorder(15, 0, 5, 0));
         mainPanel.add(lblTitle, BorderLayout.NORTH);
 
@@ -782,7 +788,7 @@ public class MenuPrincipal extends JFrame {
         panelBajo.setBackground(bgLight);
         JButton btnRefrescar = new JButton("Actualizar Historial");
         btnRefrescar.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnRefrescar.setBackground(secondaryGreen);
+        btnRefrescar.setBackground(secondaryColor);
         btnRefrescar.setForeground(Color.BLACK);
         btnRefrescar.setPreferredSize(new Dimension(180, 35));
         btnRefrescar.setFocusPainted(false);
@@ -829,11 +835,43 @@ public class MenuPrincipal extends JFrame {
         table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         table.setRowHeight(25);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
-        table.getTableHeader().setBackground(primaryGreen);
+        table.getTableHeader().setBackground(primaryColor);
         table.getTableHeader().setForeground(Color.BLACK);
         table.getTableHeader().setReorderingAllowed(false);
         table.setGridColor(new Color(220, 225, 220));
-        table.setSelectionBackground(secondaryGreen);
+        table.setSelectionBackground(secondaryColor);
         table.setSelectionForeground(Color.WHITE);
+    }
+
+    private void restringirSoloNumeros(JSpinner spinner) {
+        JComponent editor = spinner.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor) {
+            JFormattedTextField textField = ((JSpinner.DefaultEditor) editor).getTextField();
+            textField.addKeyListener(new java.awt.event.KeyAdapter() {
+                @Override
+                public void keyTyped(java.awt.event.KeyEvent e) {
+                    char c = e.getKeyChar();
+                    if (!Character.isDigit(c) && c != '\b' && c != '\u007F') {
+                        e.consume();
+                    }
+                }
+            });
+        }
+    }
+
+    private void restringirSoloNumerosPermitirNegativo(JSpinner spinner) {
+        JComponent editor = spinner.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor) {
+            JFormattedTextField textField = ((JSpinner.DefaultEditor) editor).getTextField();
+            textField.addKeyListener(new java.awt.event.KeyAdapter() {
+                @Override
+                public void keyTyped(java.awt.event.KeyEvent e) {
+                    char c = e.getKeyChar();
+                    if (!Character.isDigit(c) && c != '-' && c != '\b' && c != '\u007F') {
+                        e.consume();
+                    }
+                }
+            });
+        }
     }
 }

@@ -35,7 +35,7 @@ public class UsuarioControlador {
         return null;
     }
 
-    public boolean registrarUsuario(String documento, String nombre, int edad, String contrasena) {
+    public boolean registrarUsuario(String documento, String nombre, int edad, boolean esAdmin, String contrasena) {
         if (documento == null || documento.trim().isEmpty() ||
             nombre == null || nombre.trim().isEmpty() || edad <= 0 ||
             contrasena == null || contrasena.trim().isEmpty()) {
@@ -55,7 +55,7 @@ public class UsuarioControlador {
             return false;
         }
 
-        Usuario nuevo = new Usuario(documento, nombre, edad, false, contrasena);
+        Usuario nuevo = new Usuario(documento, nombre, edad, esAdmin, contrasena);
         return usuarioDAO.registrarUsuario(nuevo);
     }
 
