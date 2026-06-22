@@ -271,4 +271,8 @@ public class ApuestaControlador {
     public List<Object[]> obtenerHistorialUsuario(String documento) {
         return apuestaDAO.obtenerHistorialPorUsuario(documento);
     }
+
+    public List<Object[]> obtenerHistorialTodos(String filtroUsuario, String filtroGrupo) {
+        return apuestaDAO.obtenerHistorialTodos(filtroUsuario, filtroGrupo);
+    }
 }

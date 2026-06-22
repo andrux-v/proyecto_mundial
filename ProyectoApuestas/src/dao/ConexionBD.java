@@ -140,12 +140,8 @@ public class ConexionBD {
                     "FOR EACH ROW " +
                     "BEGIN " +
                     "  IF OLD.goles_local != NEW.goles_local OR OLD.goles_visitante != NEW.goles_visitante THEN " +
-                    "    UPDATE historial_apuestas " +
-                    "    SET goles_local = NEW.goles_local, " +
-                    "        goles_visitante = NEW.goles_visitante, " +
-                    "        fecha_registro = CURRENT_TIMESTAMP, " +
-                    "        tipo_accion = 'PREDICCIÓN MODIFICADA' " +
-                    "    WHERE usuario_documento = NEW.usuario_documento AND partido_id = NEW.partido_id; " +
+                    "    INSERT INTO historial_apuestas (usuario_documento, partido_id, goles_local, goles_visitante, tipo_accion) " +
+                    "    VALUES (NEW.usuario_documento, NEW.partido_id, NEW.goles_local, NEW.goles_visitante, 'PREDICCIÓN MODIFICADA'); " +
                     "  END IF; " +
                     "END"
                 );
@@ -153,6 +149,22 @@ public class ConexionBD {
                 if (e.getErrorCode() != 1359) { // 1359 = Trigger already exists
                     throw e;
                 }
+            }
+
+            // 4.4 Ejecutar migración de backfill para historial huérfano
+            try {
+                int migrados = stmt.executeUpdate(
+                    "INSERT INTO historial_apuestas (usuario_documento, partido_id, goles_local, goles_visitante, tipo_accion, fecha_registro) " +
+                    "SELECT a.usuario_documento, a.partido_id, a.goles_local, a.goles_visitante, 'NUEVA PREDICCIÓN', NOW() " +
+                    "FROM apuestas a " +
+                    "LEFT JOIN historial_apuestas h ON a.usuario_documento = h.usuario_documento AND a.partido_id = h.partido_id " +
+                    "WHERE h.id_historial IS NULL"
+                );
+                if (migrados > 0) {
+                    System.out.println("Migración: se crearon " + migrados + " registros históricos faltantes para apuestas existentes.");
+                }
+            } catch (SQLException e) {
+                System.err.println("Advertencia durante la migración de historial: " + e.getMessage());
             }
 
             System.out.println("Tablas de la base de datos verificadas/creadas con éxito.");

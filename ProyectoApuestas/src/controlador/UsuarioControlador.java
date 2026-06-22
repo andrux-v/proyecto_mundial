@@ -59,6 +59,10 @@ public class UsuarioControlador {
         return usuarioDAO.registrarUsuario(nuevo);
     }
 
+    public List<Usuario> obtenerTodosLosUsuarios() {
+        return usuarioDAO.obtenerTodosLosUsuarios();
+    }
+
     public List<Usuario> obtenerRanking() {
         List<Usuario> usuarios = usuarioDAO.obtenerTodosLosUsuarios();
         usuarios.removeIf(Usuario::isEsAdmin);
