@@ -37,6 +37,13 @@ public class ApuestaControlador {
     public boolean guardarApuestas(List<Apuesta> apuestas) {
         boolean exito = true;
         for (Apuesta a : apuestas) {
+            Partido p = partidoDAO.obtenerPartidoPorId(a.getPartidoId());
+            if (p != null) {
+                java.time.LocalDateTime limite = p.getFechaHora().minusMinutes(10);
+                if (java.time.LocalDateTime.now().isAfter(limite)) {
+                    continue;
+                }
+            }
             if (!apuestaDAO.guardarApuesta(a)) {
                 exito = false;
             }
@@ -275,4 +282,9 @@ public class ApuestaControlador {
     public List<Object[]> obtenerHistorialTodos(String filtroUsuario, String filtroGrupo) {
         return apuestaDAO.obtenerHistorialTodos(filtroUsuario, filtroGrupo);
     }
+
+    public int rellenarApuestasFaltantes() {
+        return apuestaDAO.rellenarApuestasFaltantes();
+    }
 }
+

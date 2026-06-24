@@ -26,7 +26,7 @@ public class UsuarioControlador {
         }
         documento = documento.trim();
         if (!documento.matches("\\d+")) {
-            return null; // Solo se permiten números
+            return null; 
         }
         Usuario u = usuarioDAO.buscarUsuarioPorDocumento(documento);
         if (u != null && u.getContrasena().equals(contrasena)) {
@@ -102,12 +102,12 @@ public class UsuarioControlador {
                 int pv = a.getGolesVisitante();
 
                 if (pl == rl && pv == rv) {
-                    totalPuntos += 5; // Exacto
+                    totalPuntos += 5; 
                 } else {
                     int resultadoReal = Integer.compare(rl, rv);
                     int resultadoPred = Integer.compare(pl, pv);
                     if (resultadoReal == resultadoPred) {
-                        totalPuntos += 3; // Acierta ganador/empate
+                        totalPuntos += 3; 
                     }
                 }
             }

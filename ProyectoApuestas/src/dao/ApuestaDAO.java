@@ -166,4 +166,25 @@ public class ApuestaDAO {
         }
         return historial;
     }
+
+    public int rellenarApuestasFaltantes() {
+        String sql = "INSERT INTO apuestas (usuario_documento, partido_id, goles_local, goles_visitante) " +
+                     "SELECT u.documento, p.id, FLOOR(RAND() * 4), FLOOR(RAND() * 4) " +
+                     "FROM usuarios u " +
+                     "CROSS JOIN partidos p " +
+                     "LEFT JOIN apuestas a ON a.usuario_documento = u.documento AND a.partido_id = p.id " +
+                     "WHERE u.es_admin = false " +
+                     "  AND a.id IS NULL " +
+                     "  AND ? >= DATE_SUB(p.fecha_hora, INTERVAL 10 MINUTE)";
+        try (Connection conn = ConexionBD.obtenerConexion();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setTimestamp(1, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+            return pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error al rellenar apuestas faltantes: " + e.getMessage());
+            return -1;
+        }
+    }
 }
+

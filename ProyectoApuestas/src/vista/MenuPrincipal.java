@@ -523,6 +523,8 @@ public class MenuPrincipal extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd MMM, HH:mm", java.util.Locale.forLanguageTag("es-ES"));
+
         for (int i = 0; i < partidosPronosticoActual.size(); i++) {
             Partido p = partidosPronosticoActual.get(i);
             Apuesta a = apuestasPronosticoActual.get(i);
@@ -555,12 +557,32 @@ public class MenuPrincipal extends JFrame {
             lblVisitante.setFont(new Font("Segoe UI", Font.BOLD, 13));
             panelPronosticosContenido.add(lblVisitante, gbc);
 
-            // Real outcome display
+            // Real outcome, dates, and locking verification
             gbc.gridx = 5; gbc.weightx = 0.15;
-            String realStr = (p.getGolesLocal() == -1) ? "Pendiente" : p.getGolesLocal() + " - " + p.getGolesVisitante();
-            JLabel lblReal = new JLabel("(Oficial: " + realStr + ")", SwingConstants.CENTER);
-            lblReal.setFont(new Font("Segoe UI", Font.ITALIC, 11));
-            lblReal.setForeground(Color.GRAY);
+            java.time.LocalDateTime limite = p.getFechaHora().minusMinutes(10);
+            boolean bloq = java.time.LocalDateTime.now().isAfter(limite);
+            
+            String fechaStr = p.getFechaHora().format(formatter);
+            String estadoStr;
+            Color colorEstado;
+            if (bloq) {
+                spinLocal.setEnabled(false);
+                spinVisitante.setEnabled(false);
+                if (p.getGolesLocal() != -1 && p.getGolesVisitante() != -1) {
+                    estadoStr = "Oficial: " + p.getGolesLocal() + " - " + p.getGolesVisitante();
+                    colorEstado = new Color(30, 110, 50);
+                } else {
+                    estadoStr = "Cerrado";
+                    colorEstado = new Color(170, 40, 40);
+                }
+            } else {
+                estadoStr = "Abierto";
+                colorEstado = new Color(30, 80, 170);
+            }
+            
+            JLabel lblReal = new JLabel(fechaStr + " (" + estadoStr + ")", SwingConstants.CENTER);
+            lblReal.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+            lblReal.setForeground(colorEstado);
             panelPronosticosContenido.add(lblReal, gbc);
         }
 
@@ -575,17 +597,29 @@ public class MenuPrincipal extends JFrame {
                 return;
             }
             
+            List<Apuesta> apuestasPorGuardar = new ArrayList<>();
             for (int i = 0; i < 6; i++) {
-                Apuesta a = apuestasPronosticoActual.get(i);
-                int gl = ((Number) spinnersLocal.get(i).getValue()).intValue();
-                int gv = ((Number) spinnersVisitante.get(i).getValue()).intValue();
-                a.setGolesLocal(gl);
-                a.setGolesVisitante(gv);
+                Partido p = partidosPronosticoActual.get(i);
+                boolean bloq = java.time.LocalDateTime.now().isAfter(p.getFechaHora().minusMinutes(10));
+                
+                if (!bloq) {
+                    Apuesta a = apuestasPronosticoActual.get(i);
+                    int gl = ((Number) spinnersLocal.get(i).getValue()).intValue();
+                    int gv = ((Number) spinnersVisitante.get(i).getValue()).intValue();
+                    a.setGolesLocal(gl);
+                    a.setGolesVisitante(gv);
+                    apuestasPorGuardar.add(a);
+                }
+            }
+
+            if (apuestasPorGuardar.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay pronósticos abiertos para modificar en este grupo.", "Información", JOptionPane.INFORMATION_MESSAGE);
+                return;
             }
 
             new Thread(() -> {
                 try {
-                    boolean ok = apuestaControlador.guardarApuestas(apuestasPronosticoActual);
+                    boolean ok = apuestaControlador.guardarApuestas(apuestasPorGuardar);
                     SwingUtilities.invokeLater(() -> {
                         try {
                             if (ok) {

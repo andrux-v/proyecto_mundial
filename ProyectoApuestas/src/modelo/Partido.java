@@ -1,5 +1,7 @@
 package modelo;
 
+import java.time.LocalDateTime;
+
 public class Partido {
     private int id;
     private String grupo;
@@ -8,8 +10,9 @@ public class Partido {
     private String equipoVisitante;
     private int golesLocal; // -1 means not played yet
     private int golesVisitante; // -1 means not played yet
+    private LocalDateTime fechaHora;
 
-    public Partido(int id, String grupo, int partidoNro, String equipoLocal, String equipoVisitante, int golesLocal, int golesVisitante) {
+    public Partido(int id, String grupo, int partidoNro, String equipoLocal, String equipoVisitante, int golesLocal, int golesVisitante, LocalDateTime fechaHora) {
         this.id = id;
         this.grupo = grupo;
         this.partidoNro = partidoNro;
@@ -17,10 +20,19 @@ public class Partido {
         this.equipoVisitante = equipoVisitante;
         this.golesLocal = golesLocal;
         this.golesVisitante = golesVisitante;
+        this.fechaHora = fechaHora;
+    }
+
+    public Partido(int id, String grupo, int partidoNro, String equipoLocal, String equipoVisitante, int golesLocal, int golesVisitante) {
+        this(id, grupo, partidoNro, equipoLocal, equipoVisitante, golesLocal, golesVisitante, LocalDateTime.of(2026, 6, 11, 12, 0));
+    }
+
+    public Partido(String grupo, int partidoNro, String equipoLocal, String equipoVisitante, LocalDateTime fechaHora) {
+        this(-1, grupo, partidoNro, equipoLocal, equipoVisitante, -1, -1, fechaHora);
     }
 
     public Partido(String grupo, int partidoNro, String equipoLocal, String equipoVisitante) {
-        this(-1, grupo, partidoNro, equipoLocal, equipoVisitante, -1, -1);
+        this(-1, grupo, partidoNro, equipoLocal, equipoVisitante, -1, -1, LocalDateTime.of(2026, 6, 11, 12, 0));
     }
 
     public int getId() {
@@ -77,5 +89,13 @@ public class Partido {
 
     public void setGolesVisitante(int golesVisitante) {
         this.golesVisitante = golesVisitante;
+    }
+
+    public LocalDateTime getFechaHora() {
+        return fechaHora;
+    }
+
+    public void setFechaHora(LocalDateTime fechaHora) {
+        this.fechaHora = fechaHora;
     }
 }

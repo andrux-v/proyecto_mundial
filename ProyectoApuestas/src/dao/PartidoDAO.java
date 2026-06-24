@@ -12,7 +12,7 @@ public class PartidoDAO {
 
     public List<Partido> obtenerPartidosPorGrupo(String grupo) {
         List<Partido> partidos = new ArrayList<>();
-        String sql = "SELECT id, grupo, partido_nro, equipo_local, equipo_visitante, goles_local, goles_visitante FROM partidos WHERE grupo = ? ORDER BY partido_nro";
+        String sql = "SELECT id, grupo, partido_nro, equipo_local, equipo_visitante, goles_local, goles_visitante, fecha_hora FROM partidos WHERE grupo = ? ORDER BY partido_nro";
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -26,7 +26,8 @@ public class PartidoDAO {
                         rs.getString("equipo_local"),
                         rs.getString("equipo_visitante"),
                         rs.getInt("goles_local"),
-                        rs.getInt("goles_visitante")
+                        rs.getInt("goles_visitante"),
+                        rs.getTimestamp("fecha_hora") != null ? rs.getTimestamp("fecha_hora").toLocalDateTime() : java.time.LocalDateTime.of(2026, 6, 11, 12, 0)
                     ));
                 }
             }
@@ -38,7 +39,7 @@ public class PartidoDAO {
 
     public List<Partido> obtenerTodosLosPartidos() {
         List<Partido> partidos = new ArrayList<>();
-        String sql = "SELECT id, grupo, partido_nro, equipo_local, equipo_visitante, goles_local, goles_visitante FROM partidos ORDER BY grupo, partido_nro";
+        String sql = "SELECT id, grupo, partido_nro, equipo_local, equipo_visitante, goles_local, goles_visitante, fecha_hora FROM partidos ORDER BY grupo, partido_nro";
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
@@ -51,7 +52,8 @@ public class PartidoDAO {
                     rs.getString("equipo_local"),
                     rs.getString("equipo_visitante"),
                     rs.getInt("goles_local"),
-                    rs.getInt("goles_visitante")
+                    rs.getInt("goles_visitante"),
+                    rs.getTimestamp("fecha_hora") != null ? rs.getTimestamp("fecha_hora").toLocalDateTime() : java.time.LocalDateTime.of(2026, 6, 11, 12, 0)
                 ));
             }
         } catch (SQLException e) {
@@ -61,7 +63,7 @@ public class PartidoDAO {
     }
 
     public Partido obtenerPartidoPorId(int id) {
-        String sql = "SELECT id, grupo, partido_nro, equipo_local, equipo_visitante, goles_local, goles_visitante FROM partidos WHERE id = ?";
+        String sql = "SELECT id, grupo, partido_nro, equipo_local, equipo_visitante, goles_local, goles_visitante, fecha_hora FROM partidos WHERE id = ?";
         try (Connection conn = ConexionBD.obtenerConexion();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -75,7 +77,8 @@ public class PartidoDAO {
                         rs.getString("equipo_local"),
                         rs.getString("equipo_visitante"),
                         rs.getInt("goles_local"),
-                        rs.getInt("goles_visitante")
+                        rs.getInt("goles_visitante"),
+                        rs.getTimestamp("fecha_hora") != null ? rs.getTimestamp("fecha_hora").toLocalDateTime() : java.time.LocalDateTime.of(2026, 6, 11, 12, 0)
                     );
                 }
             }
